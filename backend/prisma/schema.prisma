@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus { ONLINE AWAY OFFLINE CUSTOM }
+
+model User {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  googleId       String?           @unique
+  password       String?
+  name           String?
+  avatar         String?
+  status         UserStatus        @default(OFFLINE)
+  customStatus   String?
+  isOnline       Boolean           @default(false)
+  lastSeen       DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
+  memberships    WorkspaceMember[]
+  messages       Message[]
+  dmParticipants DMParticipant[]
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+  ANNOUNCEMENT
+}
+
+model Workspace {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  iconUrl     String?
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], name: "WorkspaceOwner")
+  members     WorkspaceMember[]
+  channels    Channel[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Channel {
+  id          String      @id @default(cuid())
+  name        String
+  topic       String?
+  type        ChannelType @default(TEXT)
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+  messages    Message[]
+  unreadCount Int         @default(0)
+  createdAt   DateTime    @default(now())
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        String   @default("member")
+  user        User     @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime @default(now())
+  @@unique([userId, workspaceId])
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  content        String
+  authorId       String
+  author         User      @relation(fields: [authorId], references: [id])
+  channelId      String?   // message can belong to either a channel or a dm conversation
+  channel        Channel?  @relation(fields: [channelId], references: [id])
+  conversationId String?
+  conversation   DMConversation? @relation(fields: [conversationId], references: [id])
+  mentions       MessageMention[]
+  reactions      Json?     // {":smile": ["userId1", "userId2"], ":thumbsup": ["userId3"] }
+  attachments    Attachment[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  editedAt       DateTime?
+  deleted        Boolean   @default(false)
+}
+
+model DMConversation {
+  id           String          @id @default(cuid())
+  name         String?
+  isGroup      Boolean         @default(false)
+  lastMessageAt DateTime?
+  participants DMParticipant[]
+  messages     Message[]
+  unreadCount  Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model DMParticipant {
+  id             String         @id @default(cuid())
+  conversationId String
+  userId         String
+  role           String         @default("member")
+  conversation   DMConversation @relation(fields: [conversationId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  createdAt      DateTime       @default(now())
+  @@unique([conversationId, userId])
+}
+
+model MessageMention {
+  id        String  @id @default(cuid())
+  messageId String
+  userId    String
+  message   Message @relation(fields: [messageId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  @@unique([messageId, userId])
+}
+
+model Unread {
+  id             String   @id @default(cuid())
+  userId         String
+  channelId      String?
+  conversationId String?
+  count          Int      @default(0)
+  user           User     @relation(fields: [userId], references: [id])
+  channel        Channel? @relation(fields: [channelId], references: [id])
+  conversation   DMConversation? @relation(fields: [conversationId], references: [id])
+  updatedAt      DateTime @updatedAt
+  @@unique([userId, channelId, conversationId])
+}
+
+// add back relation fields on User for members owned
+
+model Attachment {
+  id        String   @id @default(cuid())
+  url       String
+  filename  String
+  mimeType  String
+  size      Int
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+  createdAt DateTime @default(now())
+}

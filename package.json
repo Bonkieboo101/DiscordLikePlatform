@@ -1,0 +1,17 @@
+{
+    "name": "communitychat",
+    "private": true,
+    "version": "0.1.0",
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
+    "scripts": {
+        "dev:frontend": "pnpm --filter frontend dev",
+        "dev:backend": "pnpm --filter backend dev",
+        "dev": "pnpm -w -s run dev:backend & pnpm -w -s run dev:frontend",
+        "build:frontend": "pnpm --filter frontend build",
+        "build:backend": "pnpm --filter backend build && pnpm --filter backend run postbuild",
+        "build": "pnpm -w -s run build:backend && pnpm -w -s run build:frontend"
+    }
+}

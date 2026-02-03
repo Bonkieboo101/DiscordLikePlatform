@@ -1,0 +1,50 @@
+{
+    "name": "backend",
+    "version": "0.1.0",
+    "private": true,
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "build": "tsc -p .",
+        "postbuild": "node ./scripts/copyPrisma.js",
+        "start": "node ./dist/index.js",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev --name add-attachments",
+        "test": "jest --passWithNoTests"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "socket.io": "^4.7.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.0",
+        "@prisma/client": "^5.0.0",
+        "jsonwebtoken": "^9.0.0",
+        "bcryptjs": "^2.4.3",
+        "passport": "^0.6.0",
+        "passport-google-oauth20": "^2.0.0",
+        "express-rate-limit": "^6.7.0",
+        "zod": "^3.21.4",
+        "slugify": "^1.6.6",
+        "multer": "^1.4.5",
+        "@aws-sdk/client-s3": "^3.500.0",
+        "@aws-sdk/s3-request-presigner": "^3.500.0",
+        "helmet": "^7.0.0",
+        "winston": "^4.0.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.1.6",
+        "ts-node-dev": "^2.0.0",
+        "prisma": "^5.0.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.0.0",
+        "@types/cors": "^2.8.12",
+        "@types/jsonwebtoken": "^9.0.1",
+        "@types/bcryptjs": "^2.4.2",
+        "@types/passport": "^1.0.11",
+        "@types/passport-google-oauth20": "^2.0.8",
+        "jest": "^29.0.0",
+        "ts-jest": "^29.0.0",
+        "@types/jest": "^29.0.0",
+        "@types/multer": "^1.4.7"
+    }
+}
